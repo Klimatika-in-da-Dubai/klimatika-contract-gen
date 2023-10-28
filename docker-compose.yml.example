@@ -1,0 +1,20 @@
+services:
+  bot:
+    build: .
+    environment:
+      BOT_TOKEN: 
+      REDIS_HOST: 
+      REDIS_PORT: 
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:5-alpine
+    restart: on-failure
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
+
+
