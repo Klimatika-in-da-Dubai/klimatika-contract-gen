@@ -50,12 +50,12 @@ def get_services_keyboard(services: dict) -> InlineKeyboardMarkup:
 
 def get_service_text(services: dict, service: OneTimeContractService) -> str:
     if service not in services:
-        return f"{SERVICES_RU_NAME[service]}: ❌"
+        return f"{SERVICES_RU_NAME[service].capitalize()}: ❌"
 
     if services[service] == 0:
-        return f"{SERVICES_RU_NAME[service]}: ❌"
+        return f"{SERVICES_RU_NAME[service].capitalize()}: ❌"
 
-    return f"{SERVICES_RU_NAME[service]}: {services[service]:.2f} ✅"
+    return f"{SERVICES_RU_NAME[service].capitalize()}: {services[service]:.2f} ✅"
 
 
 class UpdateServiceTarget(IntEnum):

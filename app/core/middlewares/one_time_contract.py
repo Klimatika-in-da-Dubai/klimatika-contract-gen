@@ -28,9 +28,9 @@ SERVICES_NAME = {
 }
 
 SERVICES_RU_NAME = {
-    OneTimeContractService.AC_MAINTENANCE: "обслуживание кондиционера",
-    OneTimeContractService.AC_REPAIR: "ремонт кондиционера",
-    OneTimeContractService.OTHER: "другое",
+    OneTimeContractService.AC_MAINTENANCE: "Обслуживание кондиционера",
+    OneTimeContractService.AC_REPAIR: "Ремонт кондиционера",
+    OneTimeContractService.OTHER: "Другое",
 }
 
 
