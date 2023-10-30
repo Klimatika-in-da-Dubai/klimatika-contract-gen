@@ -169,7 +169,16 @@ async def get_other_price_message(
 
 
 @one_time_contract_router.callback_query(OneTimeContract.get_service, EnterCB.filter())
-async def cb_enter(cb: CallbackQuery, state: FSMContext):
+async def cb_enter(
+    cb: CallbackQuery, state: FSMContext, one_time_contract: OneTimeContractStateData
+):
+    services = await one_time_contract.get_services()
+    if len(list(services.keys())) == 0 or not all(
+        [services[service] for service in services]
+    ):
+        await cb.answer(text="Заполните хотя бы один сервис!", show_alert=True)
+        return
+
     await cb.answer()
     await send_get_discount_message(cb.message.edit_text, state)  # type: ignore
 
@@ -260,7 +269,7 @@ async def cb_back(cb: CallbackQuery, state: FSMContext):
             func = send_get_client_name_message
         case OneTimeContract.get_service.state:
             func = send_get_contract_number_cpm_message
-        case OneTimeContract.get_service_price.state | OneTimeContract.update_service.state:
+        case OneTimeContract.get_service_price.state | OneTimeContract.update_service.state | OneTimeContract.get_discount:
             func = send_get_services_message
 
     await func(cb.message.edit_text, state)  # type: ignore
