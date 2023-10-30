@@ -7,6 +7,8 @@ services:
       REDIS_PORT: 
     depends_on:
       - redis
+    volumes:
+      - ./app/services/docs_gen/templates:/app/app/services/docs_gen/templates
 
   redis:
     image: redis:5-alpine
