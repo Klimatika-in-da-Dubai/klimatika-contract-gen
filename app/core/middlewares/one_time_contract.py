@@ -1,11 +1,37 @@
 from collections.abc import Awaitable, Callable
 from datetime import date, datetime
+from enum import StrEnum
 from typing import Any, Dict
 from aiogram import BaseMiddleware
 from aiogram.fsm.context import FSMContext
 from aiogram.types import TelegramObject
 
-from app.services.docs_gen.one_time_contract import OneTimeContractData
+from app.services.docs_gen.one_time_contract import OneTimeContractData, ServiceData
+
+
+class OneTimeContractService(StrEnum):
+    AC_MAINTENANCE = "ac_maintenance"
+    AC_REPAIR = "ac_repair"
+    OTHER = "other"
+
+
+SERVICES_ORDER = {
+    OneTimeContractService.AC_MAINTENANCE: 0,
+    OneTimeContractService.AC_REPAIR: 1,
+    OneTimeContractService.OTHER: 2,
+}
+
+SERVICES_NAME = {
+    OneTimeContractService.AC_MAINTENANCE: "Premium AC Maintenance",
+    OneTimeContractService.AC_REPAIR: "Premium AC Repairs",
+    OneTimeContractService.OTHER: "Other",
+}
+
+SERVICES_RU_NAME = {
+    OneTimeContractService.AC_MAINTENANCE: "обслуживание кондиционера",
+    OneTimeContractService.AC_REPAIR: "ремонт кондиционера",
+    OneTimeContractService.OTHER: "другое",
+}
 
 
 class OneTimeContractStateData:
@@ -18,10 +44,12 @@ class OneTimeContractStateData:
             "client_name": None,
             "address": None,
             "contract_number_cpm": None,
-            "ac_maintenance_price": None,
-            "ac_repair_price": None,
-            "other_price": None,
-            "discount_price": None,
+            "services": {
+                # "ac_maintenance":  0,
+                # "ac_repair":  0,
+                # "other_price":  0,
+            },
+            "discount": None,
         }
         await self.set_one_time_contract(data)
 
@@ -40,6 +68,20 @@ class OneTimeContractStateData:
     async def get_one_time_contract_key_value(self, key: Any) -> Any:
         data = await self.get_one_time_contract()
         return data[key]
+
+    async def set_selected_service(self, service: OneTimeContractService):
+        await self.update_one_time_contract(selected_service=service)
+
+    async def unselect_service(self):
+        await self.update_one_time_contract(selected_service=None)
+
+    async def get_selected_service(self) -> OneTimeContractService:
+        return await self.get_one_time_contract_key_value("selected_service")
+
+    async def remove_service(self, service: OneTimeContractService) -> None:
+        services = await self.get_services()
+        services.pop(service)
+        await self.update_services(services)
 
     async def set_date(self, date: date) -> None:
         await self.update_one_time_contract(date=date.strftime("%d.%m.%Y"))
@@ -66,29 +108,57 @@ class OneTimeContractStateData:
     async def get_contract_number_cpm(self) -> str:
         return await self.get_one_time_contract_key_value("contract_number_cpm")
 
+    async def get_services(self) -> dict:
+        return await self.get_one_time_contract_key_value("services")
+
+    async def update_services(self, services: dict) -> None:
+        return await self.update_one_time_contract(services=services)
+
+    async def is_service_in_services(self, service: OneTimeContractService) -> bool:
+        return str(service) in await self.get_services()
+
+    async def get_service_price(self, service: OneTimeContractService) -> float:
+        services = await self.get_services()
+        return services[str(service)]
+
+    async def set_service_price(self, service: str, price: float) -> None:
+        services = await self.get_services()
+        services[service] = price
+        await self.update_services(services)
+
     async def set_ac_maintenance_price(self, ac_maintenance_price: float) -> None:
-        await self.update_one_time_contract(ac_maintenance_price=ac_maintenance_price)
+        await self.set_service_price(
+            OneTimeContractService.AC_MAINTENANCE, ac_maintenance_price
+        )
 
     async def get_ac_maintenance_price(self) -> float:
-        return await self.get_one_time_contract_key_value("ac_maintenance_price")
+        return await self.get_service_price(OneTimeContractService.AC_MAINTENANCE)
 
     async def set_ac_repair_price(self, ac_repair_price: float) -> None:
-        await self.update_one_time_contract(ac_repair_price=ac_repair_price)
+        await self.set_service_price(OneTimeContractService.AC_REPAIR, ac_repair_price)
 
     async def get_ac_repair_price(self) -> float:
-        return await self.get_one_time_contract_key_value("ac_repair_price")
+        return await self.get_service_price(OneTimeContractService.AC_REPAIR)
 
     async def set_other_price(self, other_price: float) -> None:
-        await self.update_one_time_contract(other_price=other_price)
+        await self.set_service_price(OneTimeContractService.OTHER, other_price)
 
     async def get_other_price(self) -> float:
-        return await self.get_one_time_contract_key_value("other_price")
+        return await self.get_service_price(OneTimeContractService.OTHER)
 
-    async def set_discount_price(self, discount_price: float) -> None:
-        await self.update_one_time_contract(discount_price=discount_price)
+    async def set_discount(self, discount: float) -> None:
+        await self.update_one_time_contract(discount=discount)
 
-    async def get_discount_price(self) -> float:
-        return await self.get_one_time_contract_key_value("discount_price")
+    async def get_discount(self) -> float:
+        return await self.get_one_time_contract_key_value("discount")
+
+    async def get_services_data(self) -> list[ServiceData]:
+        services = await self.get_services()
+        services = sorted(list(services.keys()), key=lambda x: SERVICES_ORDER[x])
+        return [
+            ServiceData(SERVICES_NAME[service], await self.get_service_price(service))
+            for service in services
+        ]
 
     async def get_one_time_contract_data(self) -> OneTimeContractData:
         return OneTimeContractData(
@@ -96,10 +166,8 @@ class OneTimeContractStateData:
             _date=await self.get_date(),
             client_name=await self.get_client_name(),
             address=await self.get_address(),
-            ac_maintenance_price=await self.get_ac_maintenance_price(),
-            ac_repair_price=await self.get_ac_repair_price(),
-            other_price=await self.get_other_price(),
-            discount_price=await self.get_discount_price(),
+            services=await self.get_services_data(),
+            discount=await self.get_discount(),
         )
 
 

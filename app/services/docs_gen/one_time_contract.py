@@ -18,39 +18,42 @@ ONE_TIME_CONTRACT_TEMPLATE_PATH = (
 
 
 @dataclass
+class ServiceData:
+    name: str
+    price: float
+
+
+@dataclass
 class OneTimeContractData:
     contract_number_cpm: str
     _date: date
     client_name: str
     address: str
-    ac_maintenance_price: float
-    ac_repair_price: float
-    other_price: float
-    discount_price: float
+    services: list[ServiceData]
+    discount: float
 
     @property
     def date(self):
         return self._date.strftime("%d.%m.%Y")
 
+    def services_price(self) -> float:
+        return sum([service.price for service in self.services])
+
     @property
     def price(self):
-        return round(
-            (
-                self.ac_maintenance_price
-                + self.ac_repair_price
-                + self.other_price
-                - self.discount_price
-            ),
-            2,
-        )
+        return self.services_price() - self.discount_price
 
     @property
-    def vat(self):
-        return round(self.price * 0.05, 2)
+    def discount_price(self) -> float:
+        return self.services_price() * (self.discount / 100)
 
     @property
-    def total(self):
-        return round(self.price + self.vat, 2)
+    def vat(self) -> float:
+        return self.price * 0.05
+
+    @property
+    def total(self) -> float:
+        return self.price + self.vat
 
 
 class OneTimeContractPDF:
@@ -59,9 +62,6 @@ class OneTimeContractPDF:
         "date",
         "client_name",
         "address",
-        "ac_maintenance_price",
-        "ac_repair_price",
-        "other_price",
         "discount_price",
         "vat",
         "total",
@@ -71,6 +71,7 @@ class OneTimeContractPDF:
         self.doc: Document = docx.Document(str(ONE_TIME_CONTRACT_TEMPLATE_PATH))
         self.data = data
         self.insert_data()
+        self.insert_services_data()
 
     def generate_docx(self, path: Path):
         self.doc.save(path)
@@ -89,3 +90,25 @@ class OneTimeContractPDF:
             docx_replace_regex(
                 self.doc, re.compile(text), str(getattr(self.data, field))
             )
+
+    def insert_services_data(self) -> None:
+        for i, service in enumerate(self.data.services, start=1):
+            index = re.compile(rf"\[index{i}\]")
+            name = re.compile(rf"\[service{i}_name\]")
+            price = re.compile(rf"\[service{i}_price\]")
+            aed = re.compile(rf"\[AED{i}\]")
+            docx_replace_regex(self.doc, re.compile(index), str(i))
+            docx_replace_regex(self.doc, re.compile(name), str(service.name))
+            docx_replace_regex(self.doc, re.compile(price), str(service.price))
+            docx_replace_regex(self.doc, re.compile(aed), "AED")
+
+        for i in range(len(self.data.services), 3):
+            j = i + 1
+            index = re.compile(rf"\[index{j}\]")
+            name = re.compile(rf"\[service{j}_name\]")
+            price = re.compile(rf"\[service{j}_price\]")
+            aed = re.compile(rf"\[AED{j}\]")
+            docx_replace_regex(self.doc, re.compile(index), "")
+            docx_replace_regex(self.doc, re.compile(name), "")
+            docx_replace_regex(self.doc, re.compile(price), "")
+            docx_replace_regex(self.doc, re.compile(aed), "")

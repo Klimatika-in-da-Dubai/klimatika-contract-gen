@@ -7,10 +7,10 @@ class OneTimeContract(StatesGroup):
     get_address = State()
     get_client_name = State()
     get_contract_number_cpm = State()
-    get_ac_maintenance_price = State()
-    get_ac_repair_price = State()
-    get_other_price = State()
-    get_discount_price = State()
+    get_service = State()
+    update_service = State()
+    get_service_price = State()
+    get_discount = State()
 
 
 class YearContract(StatesGroup):
