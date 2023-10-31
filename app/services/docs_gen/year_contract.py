@@ -62,21 +62,25 @@ class YearContractData:
 
     @property
     def service2_price(self):
-        return round(self.service1_price * (1 - self.discount / 100), 2)
+        return self.service1_price * (1 - self.discount / 100)
 
     @property
     def service3_price(self):
-        return round(self.service1_price * (1 - self.discount / 100), 2)
+        return self.service1_price * (1 - self.discount / 100)
 
     @property
     def price_last_services(self):
         if self.service_count == 2:
             return self.service2_price
-        return round(self.service2_price + self.service3_price, 2)
+        return self.service2_price + self.service3_price
+
+    @property
+    def vat(self):
+        return self.price_last_services * 0.05
 
     @property
     def total(self):
-        return round(self.price_last_services + self.price_last_services * 0.05, 2)
+        return self.price_last_services + self.vat
 
 
 class YearContractPDF:
@@ -92,6 +96,7 @@ class YearContractPDF:
         "discount",
         "total_text",
         "total",
+        "vat",
     ]
     FIELDS_3_SERVICES = [
         "contract_number_cpm",
@@ -107,6 +112,7 @@ class YearContractPDF:
         "discount",
         "total_text",
         "total",
+        "vat",
     ]
 
     SERVICE_3_TABLE_INDEX = 2
@@ -142,6 +148,7 @@ class YearContractPDF:
     def insert(self, fields: list[str]):
         for field in fields:
             text = rf"\[{field}\]"
-            docx_replace_regex(
-                self.doc, re.compile(text), str(getattr(self.data, field))
-            )
+            attr = f"{getattr(self.data, field)}"
+            if isinstance(attr, float):
+                attr = f"{attr:.2f}"
+            docx_replace_regex(self.doc, re.compile(text), str(attr))
