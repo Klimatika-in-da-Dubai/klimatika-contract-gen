@@ -14,7 +14,9 @@ logging.basicConfig(
     ),
     level=logging.INFO,
     handlers=[
-        logging.FileHandler(f"logs/{datetime.now().date()}.log"),
+        logging.FileHandler(
+            f"logs/logs_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.log"
+        ),
         logging.StreamHandler(),
     ],
 )
