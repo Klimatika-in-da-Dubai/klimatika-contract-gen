@@ -1,6 +1,4 @@
 import logging
-import os
-from pathlib import Path
 from aiogram import F, Router
 from aiogram.filters import or_f
 from aiogram.fsm.context import FSMContext
@@ -29,6 +27,7 @@ from app.core.middlewares.year_contract import (
 )
 from app.core.states.states import YearContract
 from app.services.docs_gen.year_contract import YearContractPDF
+from app.settings.config import PATH_TO_REPORTS
 
 
 year_contract_router = Router()
@@ -212,14 +211,13 @@ async def generate_and_send_year_contract_pdf(
     try:
         path = YearContractPDF(
             data=await year_contract.get_year_contract_data()
-        ).generate_pdf(Path("."), str(message.chat.id))
+        ).generate_pdf(PATH_TO_REPORTS, str(message.chat.first_name))
     except Exception as e:
         logging.error(e)
         await message.answer("Произошла ошибка пожалуйста обратитесь к администратору!")  # type: ignore
         return
 
     await message.answer_document(FSInputFile(path), caption="Ваш отчёт!", reply_markup=get_doc_type_keyboard())  # type: ignore
-    os.remove(path)
 
 
 @year_contract_router.callback_query(

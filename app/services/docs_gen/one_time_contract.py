@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 import os
 from pathlib import Path
 import re
@@ -77,6 +77,7 @@ class OneTimeContractPDF:
         self.doc.save(path)
 
     def generate_pdf(self, path: Path, filename: str) -> Path:
+        filename = f"MAINTENANCE_{filename}_{datetime.now().date()}"
         path_to_docx = path / f"{filename}.docx"
         path_to_pdf = path / f"{filename}.pdf"
         self.generate_docx(path_to_docx)

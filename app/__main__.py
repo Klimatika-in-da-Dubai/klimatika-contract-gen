@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
@@ -11,7 +12,11 @@ logging.basicConfig(
         "%(asctime)s - [%(levelname)s] - %(name)s"
         "- (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
     ),
-    level=logging.DEBUG,
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler(f"logs/{datetime.now().date()}.log"),
+        logging.StreamHandler(),
+    ],
 )
 
 

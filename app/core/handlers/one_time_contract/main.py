@@ -1,11 +1,9 @@
 import logging
-from pathlib import Path
 from aiogram import F, Router
 from aiogram.filters import or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
 from datetime import date
-import os
 from app.core.handlers.main import send_choose_doc_type_message
 from app.core.handlers.one_time_contract.senders import (
     send_get_address_message,
@@ -41,6 +39,7 @@ from app.core.middlewares.one_time_contract import (
 )
 from app.core.states.states import OneTimeContract
 from app.services.docs_gen.one_time_contract import OneTimeContractPDF
+from app.settings.config import PATH_TO_REPORTS
 
 
 one_time_contract_router = Router()
@@ -231,14 +230,13 @@ async def generate_and_send_one_time_contract_pdf(
     try:
         path = OneTimeContractPDF(
             data=await one_time_contract.get_one_time_contract_data()
-        ).generate_pdf(Path("."), str(message.chat.id))
+        ).generate_pdf(PATH_TO_REPORTS, str(message.chat.first_name))
     except Exception as e:
         logging.error(e)
         await message.answer("Произошла ошибка пожалуйста обратитесь к администратору!")  # type: ignore
         return
 
     await message.answer_document(FSInputFile(path), caption="Ваш отчёт!", reply_markup=get_doc_type_keyboard())  # type: ignore
-    os.remove(path)
 
 
 @one_time_contract_router.callback_query(

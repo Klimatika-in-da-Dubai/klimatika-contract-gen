@@ -1,5 +1,6 @@
 services:
   bot:
+    restart: always
     build: .
     environment:
       BOT_TOKEN: 
@@ -9,6 +10,9 @@ services:
       - redis
     volumes:
       - ./app/services/docs_gen/templates:/app/app/services/docs_gen/templates
+      - ./logs/:/app/logs
+      - ./reports/:/app/reports
+      
 
   redis:
     image: redis:5-alpine

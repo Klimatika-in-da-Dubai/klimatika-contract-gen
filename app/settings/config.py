@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import os
+from pathlib import Path
+
+PATH_TO_ROOT = Path(__file__).parent.parent.parent
+PATH_TO_REPORTS = PATH_TO_ROOT / "reports"
 
 
 @dataclass
