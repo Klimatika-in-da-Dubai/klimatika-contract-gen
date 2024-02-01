@@ -127,7 +127,7 @@ class YearContractPDF:
         self.doc.save(path)
 
     def generate_pdf(self, path: Path, filename: str) -> Path:
-        filename = f"ANNUAL_MAINTENANCE_{filename}_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
+        filename = f"ANNUAL_MAINTENANCE_{filename}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
         path_to_docx = path / f"{filename}.docx"
         path_to_pdf = path / f"{filename}.pdf"
         self.generate_docx(path_to_docx)
