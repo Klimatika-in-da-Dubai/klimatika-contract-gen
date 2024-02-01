@@ -1,2 +1,2 @@
-# klimatika-docs-gen-bot
-Bot for generating simple documents
+# klimatika-contract-gen-bot
+Bot for generating contracts
