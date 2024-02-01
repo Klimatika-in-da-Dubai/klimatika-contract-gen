@@ -78,7 +78,7 @@ class OneTimeContractPDF:
 
     def generate_pdf(self, path: Path, filename: str) -> Path:
         filename = (
-            f"MAINTENANCE_{filename}_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
+            f"MAINTENANCE_{filename}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
         )
         path_to_docx = path / f"{filename}.docx"
         path_to_pdf = path / f"{filename}.pdf"
