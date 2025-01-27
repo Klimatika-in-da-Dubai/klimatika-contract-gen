@@ -54,6 +54,7 @@ async def send_get_service1_date_choose_message(func, state: FSMContext):
     await func(
         "Дата 1-ого выезда - сегодня или более ранняя?",
         reply_markup=get_date_choose_keyboard(),
+    #         reply_markup=get_date_choose_keyboard_from_check_out(),
     )
 
 
@@ -71,6 +72,10 @@ async def send_get_service1_price_message(func, state: FSMContext):
         func, "Введите стоимость 1-ого выезда", YearContract.get_service1_price, state
     )
 
+async def send_get_other_price_message(func, state: FSMContext):
+    await send_message_with_back_keyboard(
+        func, "Введите стоимость остальных выездов", YearContract.get_others_price, state
+    )
 
 async def send_get_discount_message(func, state: FSMContext):
     await send_message_with_back_keyboard(

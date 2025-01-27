@@ -22,5 +22,6 @@ class YearContract(StatesGroup):
     get_service1_date_choose = State()
     get_service1_date = State()
     get_service1_price = State()
+    get_others_price = State()
     get_discount = State()
     get_service_count = State()

@@ -29,16 +29,19 @@ class YearContractData:
     _date: date
     client_name: str
     address: str
-    service_count: Literal[2, 3]
+    service_count: Literal[2, 3, 4]
     _service1_date: date
     discount: float
     service1_price: float
+    service_other_price: float
 
     @property
     def total_text(self):
         if self.service_count == 2:
             return "Service 2"
-        return "Services 2-3"
+        if self.service_count == 3:
+            return "Service 2-3"
+        return "Services 1-4"
 
     @property
     def date(self):
@@ -61,18 +64,26 @@ class YearContractData:
         return date.strftime("%d.%m.%Y")
 
     @property
+    def service4_date(self):
+        date = self._service1_date + relativedelta(months=12)
+        return date.strftime("%d.%m.%Y")
+
+    @property
     def service2_price(self):
-        return self.service1_price * (1 - self.discount / 100)
+        return self.service_other_price
 
     @property
     def service3_price(self):
-        return self.service1_price * (1 - self.discount / 100)
+        return self.service_other_price
+
+    @property
+    def service4_price(self):
+        return self.service_other_price
+
 
     @property
     def price_last_services(self):
-        if self.service_count == 2:
-            return self.service2_price
-        return self.service2_price + self.service3_price
+        return self.service1_price + self.service_other_price * (self.service_count - 1)
 
     @property
     def vat(self):
@@ -80,7 +91,7 @@ class YearContractData:
 
     @property
     def total(self):
-        return self.price_last_services + self.vat
+        return (self.price_last_services * (1 - self.discount / 100)) + self.vat
 
 
 class YearContractPDF:
@@ -114,6 +125,27 @@ class YearContractPDF:
         "total",
         "vat",
     ]
+    FIELDS_4_SERVICES = [
+        "contract_number_cpm",
+        "date",
+        "client_name",
+        "address",
+        "service1_date",
+        "service2_date",
+        "service3_date",
+        "service4_date",
+        "service1_price",
+        "service2_price",
+        "service3_price",
+        "service4_price",
+        "discount",
+        "total_text",
+        "total",
+        "vat",
+    ]
+
+    SERVICE_4_TABLE_INDEX = 2
+    SERVICE_4_ROW_INDEX = 7
 
     SERVICE_3_TABLE_INDEX = 2
     SERVICE_3_ROW_INDEX = 6
@@ -136,10 +168,19 @@ class YearContractPDF:
         return path_to_pdf
 
     def insert_data(self) -> None:
+        if self.data.service_count == 4:
+            self.insert(self.FIELDS_4_SERVICES)
+            return
         if self.data.service_count == 3:
             self.insert(self.FIELDS_3_SERVICES)
+            remove_table_row_text(
+                self.doc, self.SERVICE_4_TABLE_INDEX, self.SERVICE_4_ROW_INDEX
+            )
             return
 
+        remove_table_row_text(
+            self.doc, self.SERVICE_4_TABLE_INDEX, self.SERVICE_4_ROW_INDEX
+        )
         remove_table_row_text(
             self.doc, self.SERVICE_3_TABLE_INDEX, self.SERVICE_3_ROW_INDEX
         )

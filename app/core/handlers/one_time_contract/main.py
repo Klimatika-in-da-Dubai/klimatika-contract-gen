@@ -77,6 +77,14 @@ async def get_earlier_date(cb: CallbackQuery, state: FSMContext):
     await cb.answer()
     await send_get_date_message(cb.message.edit_text, state)  # type: ignore
 
+@one_time_contract_router.callback_query(
+    OneTimeContract.get_date_choose,
+    DateChooseCB.filter(F.target == DateChooseTarget.LATER),
+)
+async def get_later_date(cb: CallbackQuery, state: FSMContext):
+    await cb.answer()
+    await send_get_date_message(cb.message.edit_text, state)  # type: ignore
+
 
 @one_time_contract_router.message(OneTimeContract.get_date, F.text)
 async def get_date_message(

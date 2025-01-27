@@ -20,6 +20,7 @@ class YearContractStateData:
             "contract_number_cpm": "empty_contract_number!!!",
             "service1_date": "1.1.1",
             "service1_price": 0,
+            "service_other_price": 0,
             "discount": 0,
             "service_count": 2,
         }
@@ -79,16 +80,22 @@ class YearContractStateData:
     async def get_service1_price(self) -> float:
         return await self.get_year_contract_key_value("service1_price")
 
+    async def set_other_price(self, price: float) -> None:
+        await self.update_year_contract(service_other_price=price)
+
+    async def get_other_price(self) -> float:
+        return await self.get_year_contract_key_value("service_other_price")
+
     async def set_discount(self, discount: float) -> None:
         await self.update_year_contract(discount=discount)
 
     async def get_discount(self) -> float:
         return await self.get_year_contract_key_value("discount")
 
-    async def set_service_count(self, count: Literal[2, 3]) -> None:
+    async def set_service_count(self, count: Literal[2, 3, 4]) -> None:
         await self.update_year_contract(service_count=count)
 
-    async def get_service_count(self) -> Literal[2, 3]:
+    async def get_service_count(self) -> Literal[2, 3, 4]:
         return await self.get_year_contract_key_value("service_count")
 
     async def get_year_contract_data(self) -> YearContractData:
@@ -100,6 +107,7 @@ class YearContractStateData:
             service_count=await self.get_service_count(),
             _service1_date=await self.get_service1_date(),
             service1_price=await self.get_service1_price(),
+            service_other_price=await self.get_other_price(),
             discount=await self.get_discount(),
         )
 

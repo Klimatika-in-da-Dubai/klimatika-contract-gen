@@ -15,7 +15,7 @@ from app.core.handlers.year_contract.senders import (
     send_get_service1_date_choose_message,
     send_get_service1_date_message,
     send_get_service1_price_message,
-    send_get_service_count_message,
+    send_get_service_count_message, send_get_other_price_message,
 )
 from app.core.keyboards.back_keyboard import BackCB
 from app.core.keyboards.date import DateChooseCB, DateChooseTarget
@@ -56,15 +56,6 @@ async def get_date_today(
     today_date = date.today()
     await year_contract.set_date(today_date)
     await send_get_address_message(cb.message.edit_text, state)  # type: ignore
-
-
-@year_contract_router.callback_query(
-    YearContract.get_date_choose,
-    DateChooseCB.filter(F.target == DateChooseTarget.EARLIER),
-)
-async def get_earlier_date(cb: CallbackQuery, state: FSMContext):
-    await cb.answer()
-    await send_get_date_message(cb.message.edit_text, state)  # type: ignore
 
 
 @year_contract_router.message(YearContract.get_date, F.text)
@@ -128,6 +119,13 @@ async def get_service1_date_today(
     await year_contract.set_service1_date(today_date)
     await send_get_service1_price_message(cb.message.edit_text, state)  # type: ignore
 
+@year_contract_router.callback_query(
+    YearContract.get_date_choose,
+    DateChooseCB.filter(F.target == DateChooseTarget.EARLIER),
+)
+async def get_earlier_date(cb: CallbackQuery, state: FSMContext):
+    await cb.answer()
+    await send_get_date_message(cb.message.edit_text, state)  # type: ignore
 
 @year_contract_router.callback_query(
     YearContract.get_service1_date_choose,
@@ -137,6 +135,21 @@ async def get_earlier_service_date(cb: CallbackQuery, state: FSMContext):
     await cb.answer()
     await send_get_service1_date_message(cb.message.edit_text, state)  # type: ignore
 
+@year_contract_router.callback_query(
+    YearContract.get_service1_date_choose,
+    DateChooseCB.filter(F.target == DateChooseTarget.LATER),
+)
+async def get_later_service_date(cb: CallbackQuery, state: FSMContext):
+    await cb.answer()
+    await send_get_service1_date_message(cb.message.edit_text, state)
+
+@year_contract_router.callback_query(
+    YearContract.get_date_choose,
+    DateChooseCB.filter(F.target == DateChooseTarget.LATER),
+)
+async def get_later_date(cb: CallbackQuery, state: FSMContext):
+    await cb.answer()
+    await send_get_date_message(cb.message.edit_text, state)  # type: ignore
 
 @year_contract_router.message(YearContract.get_service1_date, F.text)
 async def get_service1_date_message(
@@ -171,6 +184,19 @@ async def get_service1_price_message(
         return
 
     await year_contract.set_service1_price(float(message.text))
+    await send_get_other_price_message(message.answer, state)
+
+@year_contract_router.message(YearContract.get_others_price, F.text)
+async def get_other_price_message(
+    message: Message, state: FSMContext, year_contract: YearContractStateData
+):
+    assert message.text is not None
+    text = message.text.replace(",", ".")
+    if not text.isnumeric():
+        await message.answer("Введите число!")
+        return
+
+    await year_contract.set_other_price(float(message.text))
     await send_get_discount_message(message.answer, state)
 
 
@@ -230,6 +256,7 @@ async def generate_and_send_year_contract_pdf(
         YearContract.get_service1_date_choose,
         YearContract.get_service1_date,
         YearContract.get_service1_price,
+        YearContract.get_others_price,
         YearContract.get_discount,
         YearContract.get_service_count,
     ),
@@ -256,8 +283,10 @@ async def cb_back(cb: CallbackQuery, state: FSMContext):
             func = send_get_service1_date_choose_message
         case YearContract.get_service1_price.state:
             func = send_get_service1_date_choose_message
-        case YearContract.get_discount.state:
+        case YearContract.get_others_price.state:
             func = send_get_service1_price_message
+        case YearContract.get_discount.state:
+            func = send_get_other_price_message
         case YearContract.get_service_count.state:
             func = send_get_discount_message
 
